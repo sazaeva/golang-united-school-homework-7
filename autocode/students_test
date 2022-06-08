@@ -156,18 +156,3 @@ func TestPeople_Swap(t *testing.T) {
 		})
 	}
 }
-
-func TestMatrix_Cols(t *testing.T) {
-
-}
-
-func TestMatrix_Rows(t *testing.T) {
-
-}
-func TestMatrix_Set(t *testing.T) {
-
-}
-
-func TestNew(t *testing.T) {
-
-}
