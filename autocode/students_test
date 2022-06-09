@@ -1,8 +1,8 @@
 package coverage
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -55,10 +55,9 @@ func TestPeople_Len(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Len(t, tc.people, tc.expected)
-			//if result := tc.people.Len(); result != tc.expected {
-			//	t.Errorf("Incorrect result. Expect %d, got %d", tc.expected, result)
-
+			if result := tc.people.Len(); result != tc.expected {
+				t.Errorf("Incorrect result. Expect %d, got %d", tc.expected, result)
+			}
 		})
 	}
 }
@@ -108,7 +107,9 @@ func TestPeople_Less(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Less(t, tc.val.i, tc.val.j, tc.expected)
+			if result := tc.people.Less(tc.val.j, tc.val.i); result != tc.expected {
+				t.Errorf("Incorrect result. Expect %v, got %v", tc.expected, result)
+			}
 		})
 	}
 }
@@ -123,7 +124,7 @@ func TestPeople_Swap(t *testing.T) {
 		val      val
 		expected People
 	}{
-		{name: "Swap",
+		{name: "Swap Chris, Johnny",
 			people: People{
 				Person{
 					firstName: "Chris",
@@ -153,6 +154,47 @@ func TestPeople_Swap(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.people.Swap(tc.val.i, tc.val.j)
+		})
+	}
+}
+
+func TestMatrix_Rows(t *testing.T) {
+	type Table struct {
+		rows, cols int
+		data       []int
+	}
+
+	testCases := []struct {
+		name     string
+		table    Table
+		expected [][]int
+	}{
+		{name: "Matrix: 4x4",
+			table: Table{
+				rows: 4,
+				cols: 4,
+				data: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}},
+			expected: [][]int{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}},
+		},
+		{name: "Matrix: 2x2",
+			table: Table{
+				rows: 2,
+				cols: 2,
+				data: []int{1, 2, 3, 4}},
+			expected: [][]int{{1, 2}, {3, 4}},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &Matrix{
+				rows: tc.table.rows,
+				cols: tc.table.cols,
+				data: tc.table.data,
+			}
+			if result := m.Rows(); !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Incorrect result. Expect %v, got %v", tc.expected, result)
+			}
+
 		})
 	}
 }
