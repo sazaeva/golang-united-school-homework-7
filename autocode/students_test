@@ -253,3 +253,30 @@ func TestMatrix_Set(t *testing.T) {
 		t.Errorf("Incorrect result")
 	}
 }
+func TestNew(t *testing.T) {
+	type val struct {
+		str string
+	}
+	testCases := []struct {
+		name     string
+		val      val
+		expected *Matrix
+	}{
+		{
+			name: "Create a matrix from a string",
+			val: val{
+				str: "1 2 \n3 4"},
+			expected: &Matrix{
+				rows: 2,
+				cols: 2,
+				data: []int{1, 2, 3, 4}},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if result, err := New(tc.val.str); !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Incorrect result. Expect %v, got %v, %v", tc.expected, result, err)
+			}
+		})
+	}
+}
