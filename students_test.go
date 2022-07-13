@@ -1,9 +1,9 @@
 package coverage
 
 import (
-	_ "github.com/stretchr/testify/assert"
+	"errors"
+	assert "github.com/stretchr/testify/assert"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -76,11 +76,13 @@ func TestPeople_Len(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if result := tc.people.Len(); result != tc.expected {
+			result := tc.people.Len()
+			if !assert.Equal(t, result, tc.expected) {
 				t.Errorf("Incorrect result. Expect %d, got %d", tc.expected, result)
 			}
 		})
 	}
+
 }
 
 func TestPeople_Less(t *testing.T) {
@@ -94,6 +96,22 @@ func TestPeople_Less(t *testing.T) {
 		val      val
 		expected bool
 	}{
+		{name: "false",
+			people: People{
+				Person{
+					firstName: "Chris",
+					lastName:  "Evans",
+					birthDay:  time.Date(1981, 06, 13, 10, 10, 10, 0, time.UTC),
+				},
+				Person{
+					firstName: "Chris2",
+					lastName:  "Depp",
+					birthDay:  time.Date(1981, 06, 13, 10, 10, 10, 0, time.UTC),
+				},
+			},
+			val:      val{0, 1},
+			expected: false,
+		},
 		{name: "false",
 			people: People{
 				Person{
@@ -129,12 +147,14 @@ func TestPeople_Less(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if result := tc.people.Less(tc.val.j, tc.val.i); result != tc.expected {
+			result := tc.people.Less(tc.val.j, tc.val.i)
+			if !assert.Equal(t, result, tc.expected) {
 				t.Errorf("Incorrect result. Expect %v, got %v", tc.expected, result)
 			}
 		})
 	}
 }
+
 func TestPeople_Swap(t *testing.T) {
 	type val struct {
 		i, j int
@@ -173,9 +193,15 @@ func TestPeople_Swap(t *testing.T) {
 				}},
 		},
 	}
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			oldPeople := make([]Person, len(tc.people))
+			copy(oldPeople, tc.people)
 			tc.people.Swap(tc.val.i, tc.val.j)
+			if !assert.Equal(t, oldPeople[tc.val.i], tc.people[tc.val.j]) || !assert.Equal(t, oldPeople[tc.val.j], tc.people[tc.val.i]) {
+				t.Errorf("Incorrect result of swap operation")
+			}
 		})
 	}
 }
@@ -213,13 +239,15 @@ func TestMatrix_Rows(t *testing.T) {
 				cols: tc.table.cols,
 				data: tc.table.data,
 			}
-			if result := m.Rows(); !reflect.DeepEqual(result, tc.expected) {
+			result := m.Rows()
+			if !assert.Equal(t, result, tc.expected) {
 				t.Errorf("Incorrect result. Expect %v, got %v", tc.expected, result)
 			}
 
 		})
 	}
 }
+
 func TestMatrix_Cols(t *testing.T) {
 	type Table struct {
 		rows, cols int
@@ -253,20 +281,22 @@ func TestMatrix_Cols(t *testing.T) {
 				cols: tc.table.cols,
 				data: tc.table.data,
 			}
-			if result := m.Cols(); !reflect.DeepEqual(result, tc.expected) {
+			result := m.Cols()
+			if !assert.Equal(t, result, tc.expected) {
 				t.Errorf("Incorrect result. Expect %v, got %v", tc.expected, result)
 			}
 
 		})
 	}
 }
+
 func TestMatrix_Set(t *testing.T) {
 	matrix := &Matrix{4, 4, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}}
 	expected := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17}
 
 	result := matrix.Set(3, 3, 17)
 
-	if !result || !reflect.DeepEqual(matrix.data, expected) {
+	if !result || !assert.Equal(t, matrix.data, expected) {
 		t.Errorf("Incorrect result. Expect %v, got %v", expected, result)
 	}
 
@@ -275,10 +305,12 @@ func TestMatrix_Set(t *testing.T) {
 		t.Errorf("Incorrect result")
 	}
 }
+
 func TestNew(t *testing.T) {
 	type val struct {
 		str string
 	}
+
 	testCases := []struct {
 		name     string
 		val      val
@@ -294,10 +326,40 @@ func TestNew(t *testing.T) {
 				data: []int{1, 2, 3, 4}},
 		},
 	}
+
+	testCasesError := []struct {
+		name string
+		val  val
+		err  error
+	}{
+		{
+			name: "Rows need to be the same length",
+			val: val{
+				str: "1 2 \n3 4 5"},
+			err: errors.New("Rows need to be the same length"),
+		},
+		{
+			name: "Atoi",
+			val: val{
+				str: "1 2 \n3 a"},
+			err: errors.New("strconv.Atoi: parsing \"a\": invalid syntax"),
+		},
+	}
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if result, err := New(tc.val.str); !reflect.DeepEqual(result, tc.expected) {
+			result, err := New(tc.val.str)
+			if !assert.Equal(t, result, tc.expected) {
 				t.Errorf("Incorrect result. Expect %v, got %v, %v", tc.expected, result, err)
+			}
+		})
+	}
+
+	for _, tc := range testCasesError {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := New(tc.val.str)
+			if !assert.Error(t, err, tc.err) {
+				t.Errorf("Incorrect result. Expect %v, got %v", tc.err, err)
 			}
 		})
 	}
