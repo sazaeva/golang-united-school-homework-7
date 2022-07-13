@@ -27,6 +27,26 @@ func TestPeople_Len(t *testing.T) {
 		people   People
 		expected int
 	}{
+		{name: "3 person",
+			people: People{
+				Person{
+					firstName: "Chris",
+					lastName:  "Evans",
+					birthDay:  time.Date(1981, 06, 13, 10, 10, 10, 0, time.UTC),
+				},
+				Person{
+					firstName: "Johnny",
+					lastName:  "Depp",
+					birthDay:  time.Date(1963, 06, 9, 10, 10, 10, 0, time.UTC),
+				},
+				Person{
+					firstName: "Chris",
+					lastName:  "Hemsworth",
+					birthDay:  time.Date(1983, 8, 11, 10, 10, 10, 0, time.UTC),
+				},
+			},
+			expected: 3,
+		},
 		{name: "2 person",
 			people: People{
 				Person{
@@ -61,6 +81,7 @@ func TestPeople_Len(t *testing.T) {
 		})
 	}
 }
+
 func TestPeople_Less(t *testing.T) {
 	type val struct {
 		i, j int
